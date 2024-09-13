@@ -1,0 +1,51 @@
+% Izračuna gibanje matematičnega nihala s podanim začetnim odmikom ter začetno kotno hitrostjo 
+% s pomočjo Runge-Kutta metode reda 4.  
+% Vhod:
+%   fixed_vars	tabela fiksih vrednosti [gravitacija, dolzina nihala, št. podintervalov, čas]
+%	  theta0	začetni odmik
+%	  dtheta0	začetna kotna hitrost
+% Izhod:
+%	  odmik	    2xn matrika, prva vrsta predstavja odmike v času, druga pa kotno hitrost v času
+	  
+function odmik = nihalo(fixed_vars, theta0, dtheta0)
+
+    g = fixed_vars(1);
+    l = fixed_vars(2);
+    n = fixed_vars(3);
+    t = fixed_vars(4);
+
+    % Dolzina koraka
+    h = t / n;
+
+    % Inicializacija
+    odmik = zeros(2, n);
+    y = [theta0; dtheta0];
+    odmik(:, 1) = y;
+
+    % Računamo približek diferencialne enačbe gibanja nihala z RK metodo
+    for i = 1:n-1
+        y = RK4(h, @(t, y) f(t, y, g, l), h*i, y);
+        odmik(:, i+1) = y;
+    end
+end
+
+% Nastavi diferencialno enačbo gibanja nihala. 
+% Vhod:
+%       y	    tabela fiksih vrednosti [gravitacija, dolzina nihala, št. podintervalov, čas]
+%	  theta0	začetni odmik
+%	  dtheta0	začetna kotna hitrost
+% Izhod:
+%	  odmik	    2xn matrika, prva vrsta predstavja odmike v času, druga pa kotno hitrost v času
+
+function diff_eq = f(~, y, g, l)
+    diff_eq = [y(2); -(g/l) * sin(y(1))];  % Use g and l passed as arguments
+end
+
+function y_next = RK4(h, f, t, y)
+    % Runge-Kutta 4th order method
+    k1 = h * f(t, y);
+    k2 = h * f(t + h/2, y + k1/2);
+    k3 = h * f(t + h/2, y + k2/2);
+    k4 = h * f(t + h, y + k3);
+    y_next = y + (k1 + 2*k2 + 2*k3 + k4) / 6;
+end

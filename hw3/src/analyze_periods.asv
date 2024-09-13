@@ -1,0 +1,42 @@
+
+function analyze_periods(fixed_vars, theta0_values, dtheta0_values)
+    
+    periods = zeros(length(theta0_values), length(dtheta0_values));
+    
+    time = linspace(0, fixed_vars(4), fixed_vars(3));
+
+    T_SHO = 2 * pi * sqrt(fixed_vars(2) / fixed_vars(1));  % Period of a simple harmonic oscillator
+
+    for j = 1:length(theta0_values)
+        theta0 = theta0_values(j);
+
+        for i = 1:length(dtheta0_values)
+            dtheta0 = dtheta0_values(i);
+
+            odmik = nihalo(fixed_vars, theta0, dtheta0);
+            zero_crossings = find(diff(sign(odmik(1,:))) ~= 0);
+
+            if length(zero_crossings) > 1
+                periods(j, i) = 2 * (time(zero_crossings(2)) - time(zero_crossings(1)));
+            else
+                periods(j, i) = NaN;
+            end
+        end
+    end
+
+    figure;
+    hold on;
+    colors = ['b', 'r', 'g', 'm'];
+    markers = ['o', 's', '*', 'x'];
+    for j = 1:length(theta0_values)
+        plot(dtheta0_values, periods(j, :), [colors(j), '-', markers(j)], 'LineWidth', 1.5, ...
+            'DisplayName', sprintf('\\theta_0 = %.1f rad', theta0_values(j)));
+    end
+    plot(dtheta0_values, T_SHO * ones(size(dtheta0_values)), 'k--', 'LineWidth', 2, 'DisplayName', 'SHO Period (Constant)');
+    xlabel('Initial Angular Velocity (rad/s)');
+    ylabel('Period (s)');
+    title('Primerjava nihajnega časa in začetne hitrosti pri različnih začetnih odmikih. Initial Angular Velocity for Different Initial Angles');
+    legend show;
+    grid on;
+    hold off;
+end
